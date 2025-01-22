@@ -1,5 +1,5 @@
 defmodule Tokenizer do
-  defstruct [:lbrace, :rbrace, :colon, :quote, :value, :new_line]
+  defstruct [:lbrace, :rbrace, :colon, :quote, :value, :new_line, :comma]
 end
 
 defmodule Token do
@@ -21,6 +21,8 @@ defmodule Token do
         %Tokenizer{quote: char}
       "\n" ->
         %Tokenizer{new_line: char}
+      "," ->
+        %Tokenizer{comma: char}
       _ ->
         %Tokenizer{value: char}
     end
@@ -68,6 +70,7 @@ defmodule Parser do
     rbrace = Enum.any?(valid_tokens, fn(x) -> x == head.rbrace end)
     space = Enum.any?(valid_tokens, fn(x) -> x == head.value end)
     new_line = Enum.any?(valid_tokens, fn(x) -> x == head.new_line end)
+    comma = Enum.any?(valid_tokens, fn(x) -> x == head.comma end)
 
     cond do
       quote ->
@@ -80,12 +83,9 @@ defmodule Parser do
         parse_object(tail, ["\""])
       new_line ->
         parse_object(tail, ["\n"])
+      comma ->
+        parse_object(tail, ["\"", "\n"])
       true ->
-        if head.value == "," do
-          IO.puts "invalid token"
-          exit 1
-        end
-
         parse_object(tail, ["\n"])
     end
   end
